@@ -1,0 +1,35 @@
+{
+  "name": "ROS2 Humble Monitoring System",
+  "dockerComposeFile": "../docker/docker-compose.yml",
+  "service": "ros-core",
+  "workspaceFolder": "/root/ros_ws",
+
+  // Extensions yang auto-install di dalam container
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "smilerobotics.urdf",
+        "ms-vscode.cmake-tools"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/usr/bin/python3"
+      }
+    }
+  },
+
+  // Command yang dijalankan saat container attach
+  "postAttachCommand": "source /opt/ros/humble/setup.bash && source /root/ros_ws/install/setup.bash 2>/dev/null || true",
+
+  "remoteEnv": {
+    "ROS_DISTRO": "humble",
+    "ROS_DOMAIN_ID": "0"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/ros_ws,target=/root/ros_ws,type=bind"
+  ]
+}

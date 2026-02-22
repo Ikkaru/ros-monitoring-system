@@ -1,0 +1,53 @@
+version: '3.8'
+
+# ==================================================================
+# ROS 2 Monitoring Service
+#
+# Servies:
+#   ros-core → ROS 2 core services (e.g., roscore)
+#   foxglove → Foxglove Studio for visualizing ROS 2 data
+#   novnc → noVNC web-based VNC client for remote desktop access
+#
+# Usage:
+# docker-compose up -d
+#        → http://localhost:6080 (noVNC/GUI)
+#        → http://localhost:8765 (Foxglove)
+#        → http://localhost:5000 (File Manager)
+# ==================================================================
+
+services:
+
+  # ── ROS2 Core Container ───────────────────────────────────
+  ros-core:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ros_monitoring_system
+    environment:
+    - DISPLAY=:0                
+    - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+    - XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
+    - PULSE_SERVER=/mnt/wslg/PulseServer # Audio Forwarding
+    - ROS_DOMAIN_ID=0
+    - START_FOXGLOVE=true
+    - START_FILEMANAGER=true
+    volumes:
+      # Mount ROS workspace
+      - ../ros_ws:/root/ros_ws
+      # Mount file manager web app
+      - ../file_manager:/root/file_manager
+      # Shared memory for ROS2
+      - /dev/shm:/dev/shm
+      # X11 socket for GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /mnt/wslg:/mnt/wslg
+    ports:
+      - "8765:8765"   # Foxglove Bridge
+      - "5000:5000"   # File Manager
+    networks:
+      - ros_network
+    restart: unless-stopped
+
+networks:
+  ros_network:
+    driver: bridge
