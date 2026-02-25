@@ -13,13 +13,22 @@ ENV ROS_DISTRO=humble
 
 # Install tools & depemdencies
 RUN apt-get update && apt-get install -y \
-    # Hardware acceleration & Display
+    # Hardware acceleration & Display (NVIDIA, AMD, Intel, Software)
     wget \
     libgl1 \
     libglu1-mesa \
     libegl1 \
     libgles2 \
     mesa-utils-extra \
+    # AMD/Intel GPU support via Mesa
+    libdrm2 \
+    libdrm-amdgpu1 \
+    libdrm-intel1 \
+    mesa-vulkan-drivers \
+    libvulkan1 \
+    # Software rendering fallback (llvmpipe)
+    mesa-utils \
+    libgl1-mesa-dri \
     # Window Manager
     openbox \
     # noVNC dependencies
@@ -54,8 +63,7 @@ RUN apt-get update && apt-get install -y \
     # Clean up 
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set VirtualGL EGL backend via environment (no vglserver_config needed in container)
-ENV VGL_DISPLAY=egl
+# VirtualGL - backend di-detect otomatis oleh start_desktop.sh (NVIDIA/AMD/Intel/Software)
 ENV VGL_REFRESHRATE=60
 
 # Workspace setup

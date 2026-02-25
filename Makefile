@@ -25,11 +25,20 @@ build: ## Build Docker image
 	@echo "$(YELLOW)Building Docker image...$(RESET)"
 	docker compose -f docker/docker-compose.yml build
 
-up: ## Jalankan semua service
+up: ## Jalankan semua service (NVIDIA)
 	@echo "$(GREEN)Starting all services...$(RESET)"
-	docker compose -f docker/docker-compose.yml up -d
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.nvidia.yml up
 	@echo ""
 	@echo "$(GREEN)✔ Services ready:$(RESET)"
+	@echo "   ✔ Desktop GUI  → http://localhost:6080"
+	@echo "   ✔ Foxglove     → https://app.foxglove.dev (connect ws://localhost:8765)"
+	@echo "   ✔ File Manager → http://localhost:5000"
+
+up-ogpu: ## Jalankan service dengan GPU passthrough (AMD/Intel - Linux host)
+	@echo "$(GREEN)Starting services with GPU support...$(RESET)"
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.ogpu.yml up
+	@echo ""
+	@echo "$(GREEN)✔ Services ready with GPU:$(RESET)"
 	@echo "   ✔ Desktop GUI  → http://localhost:6080"
 	@echo "   ✔ Foxglove     → https://app.foxglove.dev (connect ws://localhost:8765)"
 	@echo "   ✔ File Manager → http://localhost:5000"

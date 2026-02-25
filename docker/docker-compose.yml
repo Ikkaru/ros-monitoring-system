@@ -23,23 +23,15 @@ services:
 
     environment:
     - DISPLAY=:1
-    - VGL_DISPLAY=egl
     - VGL_REFRESHRATE=60
-    - NVIDIA_VISIBLE_DEVICES=all
-    - NVIDIA_DRIVER_CAPABILITIES=all
     - ROS_DISTRO=humble
     - ROS_DOMAIN_ID=0
     - START_FOXGLOVE=true
     - START_FILEMANAGER=true
 
-    # GPU Passthrough (NVIDIA only - /dev/dri not available on Windows)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu, display, video, compute, utility]
+    # GPU Passthrough:
+    #   NVIDIA → make up
+    #   AMD/Intel (Linux) → make up-ogpu
 
     volumes: 
       # Mount ROS workspace

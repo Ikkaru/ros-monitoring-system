@@ -1,0 +1,15 @@
+# ==================================================================
+# AMD/Intel GPU Override (Linux host only)
+#
+# Gunakan file ini bersama docker-compose.yml jika menggunakan GPU AMD/Intel:
+#
+#   make up-ogpu
+#   → docker compose -f docker/docker-compose.yml -f docker/docker-compose.ogpu.yml up
+#
+# CATATAN: Tidak support di Windows host (/dev/dri tidak tersedia)
+# ==================================================================
+
+services:
+  ros-core:
+    devices:
+      - /dev/dri:/dev/dri
