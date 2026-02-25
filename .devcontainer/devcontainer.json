@@ -1,10 +1,23 @@
 {
-  "name": "ROS2 Humble Monitoring System",
+  "name": "ROS Monitoring System",
   "dockerComposeFile": "../docker/docker-compose.yml",
   "service": "ros-core",
   "workspaceFolder": "/root/ros_ws",
 
-  // Extensions yang auto-install di dalam container
+  "features": {},
+
+  "forwardPorts": [6080, 5901, 8765, 5000],
+  "portsAttributes": {
+    "6080": {
+      "label": "Gazebo Display (noVNC)",
+      "onAutoForward": "openBrowser"
+    },
+    "5901": {
+      "label": "TurboVNC Direct",
+      "onAutoForward": "silent"
+    }
+  },
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -21,12 +34,16 @@
     }
   },
 
-  // Command yang dijalankan saat container attach
-  "postAttachCommand": "source /opt/ros/humble/setup.bash && source /root/ros_ws/install/setup.bash 2>/dev/null || true",
+   "postAttachCommand": "source /opt/ros/humble/setup.bash && source /root/ros_ws/install/setup.bash 2>/dev/null || true",
 
   "remoteEnv": {
     "ROS_DISTRO": "humble",
-    "ROS_DOMAIN_ID": "0"
+    "ROS_DOMAIN_ID": "0",
+    "DISPLAY": ":1",
+    "VGL_DISPLAY": "egl",        
+    "VGL_REFRESHRATE": "60",
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "NVIDIA_DRIVER_CAPABILITIES": "all"
   },
 
   "mounts": [

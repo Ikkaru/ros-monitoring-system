@@ -1,12 +1,8 @@
-version: '3.8'
-
 # ==================================================================
 # ROS 2 Monitoring Service
 #
 # Servies:
 #   ros-core → ROS 2 core services (e.g., roscore)
-#   foxglove → Foxglove Studio for visualizing ROS 2 data
-#   novnc → noVNC web-based VNC client for remote desktop access
 #
 # Usage:
 # docker-compose up -d
@@ -22,31 +18,48 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+
     container_name: ros_monitoring_system
+
     environment:
-    - DISPLAY=:0                
-    - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
-    - XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
-    - PULSE_SERVER=/mnt/wslg/PulseServer # Audio Forwarding
+    - DISPLAY=:1
+    - VGL_DISPLAY=egl
+    - VGL_REFRESHRATE=60
+    - NVIDIA_VISIBLE_DEVICES=all
+    - NVIDIA_DRIVER_CAPABILITIES=all
+    - ROS_DISTRO=humble
     - ROS_DOMAIN_ID=0
     - START_FOXGLOVE=true
     - START_FILEMANAGER=true
-    volumes:
+
+    # GPU Passthrough (NVIDIA only - /dev/dri not available on Windows)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, display, video, compute, utility]
+
+    volumes: 
       # Mount ROS workspace
       - ../ros_ws:/root/ros_ws
       # Mount file manager web app
       - ../file_manager:/root/file_manager
       # Shared memory for ROS2
       - /dev/shm:/dev/shm
-      # X11 socket for GUI
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - /mnt/wslg:/mnt/wslg
+
     ports:
+      - "6080:6080"   # noVNC
+      - "5901:5901"   # TurboVNC (for direct access if needed)
       - "8765:8765"   # Foxglove Bridge
       - "5000:5000"   # File Manager
+
     networks:
       - ros_network
     restart: unless-stopped
+
+    command: sleep infinity
 
 networks:
   ros_network:

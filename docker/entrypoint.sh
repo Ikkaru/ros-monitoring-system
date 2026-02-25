@@ -4,12 +4,19 @@ set -e
 # Source ROS
 source /opt/ros/humble/setup.bash
 
+# === Start Desktop (TurboVNC + noVNC + VirtualGL) ===
+echo "[INFO] Starting desktop environment..."
+/start_desktop.sh
+
 # Auto build workspace jika belum di-build
 if [ ! -f "/root/ros_ws/install/setup.bash" ]; then
     echo "[INFO] Workspace belum di-build, memulai build otomatis..."
     cd /root/ros_ws && colcon build --symlink-install
     echo "[INFO] Build selesai!"
 fi
+
+# Source workspace
+source /root/ros_ws/install/setup.bash 2>/dev/null || true
 
 # Run foxglove bridge on background
 if [ "${START_FOXGLOVE}" = "true" ]; then
