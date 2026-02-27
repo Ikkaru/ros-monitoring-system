@@ -1,56 +1,40 @@
 # =========================================================
 # Dependency image
-# ROS 2 Humble Desktop + Foxglove Bridge + Gazebo Sim
-# Base: Ubuntu 22.04 (Jammy)
+# ROS 2 Jazzy Desktop + Foxglove Bridge + Gazebo Sim
+# Base: Ubuntu 24.04 (Noble)
 # =========================================================
 
 # ROS 2 Image
-FROM osrf/ros:humble-desktop
+FROM osrf/ros:jazzy-desktop
 
 # Ignore interactive prompts during package installation
 ARG DEBIAN_FRONTEND=noninteractive
-ENV ROS_DISTRO=humble
+ENV ROS_DISTRO=jazzy
 
 # Install tools & depemdencies
 RUN apt-get update && apt-get install -y \
     # Hardware acceleration & Display (NVIDIA, AMD, Intel, Software)
-    wget \
     libgl1 \
     libglu1-mesa \
     libegl1 \
     libgles2 \
-    mesa-utils-extra \
     # AMD/Intel GPU support via Mesa
     libdrm2 \
     libdrm-amdgpu1 \
     libdrm-intel1 \
     mesa-vulkan-drivers \
     libvulkan1 \
-    # Software rendering fallback (llvmpipe)
     mesa-utils \
+    mesa-utils-extra \
     libgl1-mesa-dri \
-    # Window Manager
-    openbox \
-    # noVNC dependencies
-    python3-websockify \
-    novnc \
-    && rm -rf /var/lib/apt/lists/* \
-    \
-    # Install VirtualGL
-    && wget https://github.com/VirtualGL/virtualgl/releases/download/3.1/virtualgl_3.1_amd64.deb \
-    && apt-get update && apt-get install -y ./virtualgl_3.1_amd64.deb \
-    && rm virtualgl_3.1_amd64.deb \
-    \
-    # Install TurboVNC
-    && wget https://github.com/TurboVNC/turbovnc/releases/download/3.1/turbovnc_3.1_amd64.deb \
-    && apt-get update && apt-get install -y ./turbovnc_3.1_amd64.deb \
-    && rm turbovnc_3.1_amd64.deb \
-    \
     # ROS Packages
     && apt-get update && apt-get install -y \
     # ROS 2 tools
     ros-${ROS_DISTRO}-foxglove-bridge \
+    ros-${ROS_DISTRO}-ros2-control \
+    ros-${ROS_DISTRO}-ros2-controllers \
     ros-${ROS_DISTRO}-joint-state-publisher-gui \
+    ros-${ROS_DISTRO}-gz-ros2-control \
     # Gazebo
     ros-${ROS_DISTRO}-ros-gz \
     ros-${ROS_DISTRO}-ros-gz-bridge \
@@ -63,8 +47,6 @@ RUN apt-get update && apt-get install -y \
     # Clean up 
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# VirtualGL - backend di-detect otomatis oleh start_desktop.sh (NVIDIA/AMD/Intel/Software)
-ENV VGL_REFRESHRATE=60
 
 # Workspace setup
 ENV ROS_WS=/root/ros_ws

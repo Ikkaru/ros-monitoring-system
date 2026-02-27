@@ -3,7 +3,7 @@
 # Cara pakai: make <perintah>
 # ============================================================
 
-.PHONY: help build up down shell rviz gazebo foxglove logs rebuild
+.PHONY: help build up up-ogpu up-wslg down rebuild logs shell ros-build rviz gazebo foxglove topics nodes open-foxglove open-filemanager
 
 # Warna terminal
 GREEN  := \033[0;32m
@@ -26,22 +26,16 @@ build: ## Build Docker image
 	docker compose -f docker/docker-compose.yml build
 
 up: ## Jalankan semua service (NVIDIA)
-	@echo "$(GREEN)Starting all services...$(RESET)"
+	xhost +local:docker
 	docker compose -f docker/docker-compose.yml -f docker/docker-compose.nvidia.yml up
-	@echo ""
-	@echo "$(GREEN)✔ Services ready:$(RESET)"
-	@echo "   ✔ Desktop GUI  → http://localhost:6080"
-	@echo "   ✔ Foxglove     → https://app.foxglove.dev (connect ws://localhost:8765)"
-	@echo "   ✔ File Manager → http://localhost:5000"
 
 up-ogpu: ## Jalankan service dengan GPU passthrough (AMD/Intel - Linux host)
-	@echo "$(GREEN)Starting services with GPU support...$(RESET)"
+	xhost +local:docker
 	docker compose -f docker/docker-compose.yml -f docker/docker-compose.ogpu.yml up
-	@echo ""
-	@echo "$(GREEN)✔ Services ready with GPU:$(RESET)"
-	@echo "   ✔ Desktop GUI  → http://localhost:6080"
-	@echo "   ✔ Foxglove     → https://app.foxglove.dev (connect ws://localhost:8765)"
-	@echo "   ✔ File Manager → http://localhost:5000"
+
+up-wslg: ## Jalankan service di WSLg (GPU via D3D12, tanpa NVIDIA Container Toolkit)
+	xhost +local:docker
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.wslg.yml up
 
 down: ## Stop semua service
 	docker compose -f docker/docker-compose.yml down
@@ -59,43 +53,40 @@ shell: ## Masuk ke shell container ROS
 # ── ROS Commands ──────────────────────────────────────────
 ros-build: ## Build ROS workspace
 	docker exec ros_monitoring_system bash -c \
-		"source /opt/ros/humble/setup.bash && \
+		"source /opt/ros/jazzy/setup.bash && \
 		 cd /root/ros_ws && \
 		 colcon build --symlink-install && \
 		 echo 'Build selesai!'"
 
 rviz: ## Launch RViz dengan robot model
 	docker exec ros_monitoring_system bash -c \
-		"source /opt/ros/humble/setup.bash && \
+		"source /opt/ros/jazzy/setup.bash && \
 		 source /root/ros_ws/install/setup.bash && \
-		 ros2 launch my_robot display.launch.py"
+		 ros2 launch krsti_description robot_description.launch.py"
 
 gazebo: ## Launch Gazebo simulator
 	docker exec ros_monitoring_system bash -c \
-		"source /opt/ros/humble/setup.bash && \
+		"source /opt/ros/jazzy/setup.bash && \
 		 source /root/ros_ws/install/setup.bash && \
-		 ros2 launch my_robot gazebo.launch.py"
+		 ros2 launch krsti_gazebo gazebo.launch.py"
 
 foxglove: ## Start Foxglove Bridge
 	docker exec ros_monitoring_system bash -c \
-		"source /opt/ros/humble/setup.bash && \
+		"source /opt/ros/jazzy/setup.bash && \
 		 ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765"
 
 topics: ## List semua ROS topics
 	docker exec ros_monitoring_system bash -c \
-		"source /opt/ros/humble/setup.bash && \
+		"source /opt/ros/jazzy/setup.bash && \
 		 source /root/ros_ws/install/setup.bash && \
 		 ros2 topic list"
 
 nodes: ## List semua ROS nodes
 	docker exec ros_monitoring_system bash -c \
-		"source /opt/ros/humble/setup.bash && \
+		"source /opt/ros/jazzy/setup.bash && \
 		 ros2 node list"
 
 # ── Browser ───────────────────────────────────────────────
-open-gui: ## Buka Desktop GUI di browser
-	@xdg-open http://localhost:6080 2>/dev/null || open http://localhost:6080
-
 open-foxglove: ## Buka Foxglove Studio di browser
 	@xdg-open https://app.foxglove.dev 2>/dev/null || open https://app.foxglove.dev
 

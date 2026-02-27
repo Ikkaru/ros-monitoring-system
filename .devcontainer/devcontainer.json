@@ -6,16 +6,10 @@
 
   "features": {},
 
-  "forwardPorts": [6080, 5901, 8765, 5000],
+  "forwardPorts": [8765, 5000],
   "portsAttributes": {
-    "6080": {
-      "label": "Gazebo Display (noVNC)",
-      "onAutoForward": "openBrowser"
-    },
-    "5901": {
-      "label": "TurboVNC Direct",
-      "onAutoForward": "silent"
-    }
+    "8765": { "label": "Foxglove Bridge" },
+    "5000": { "label": "File Manager" }
   },
 
   "customizations": {
@@ -34,16 +28,12 @@
     }
   },
 
-   "postAttachCommand": "source /opt/ros/humble/setup.bash && source /root/ros_ws/install/setup.bash 2>/dev/null || true",
+   "postAttachCommand": "source /opt/ros/jazzy/setup.bash && source /root/ros_ws/install/setup.bash 2>/dev/null || true",
 
   "remoteEnv": {
-    "ROS_DISTRO": "humble",
+    "ROS_DISTRO": "jazzy",
     "ROS_DOMAIN_ID": "0",
-    "DISPLAY": ":1",
-    "VGL_DISPLAY": "egl",        
-    "VGL_REFRESHRATE": "60",
-    "NVIDIA_VISIBLE_DEVICES": "all",
-    "NVIDIA_DRIVER_CAPABILITIES": "all"
+    "DISPLAY": "${localEnv:DISPLAY}"
   },
 
   "mounts": [

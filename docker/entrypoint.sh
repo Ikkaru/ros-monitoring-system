@@ -2,11 +2,11 @@
 set -e
 
 # Source ROS
-source /opt/ros/humble/setup.bash
+source /opt/ros/${ROS_DISTRO}/setup.bash
 
-# === Start Desktop (TurboVNC + noVNC + VirtualGL) ===
-echo "[INFO] Starting desktop environment..."
-/start_desktop.sh
+# === Configure GPU backend ===
+echo "[INFO] Configuring GPU backend..."
+source /start_desktop.sh
 
 # Auto build workspace jika belum di-build
 if [ ! -f "/root/ros_ws/install/setup.bash" ]; then
@@ -35,7 +35,6 @@ fi
 echo "========================================="
 echo " ROS2 Monitoring System Container Ready"
 echo "========================================="
-echo " → Desktop GUI  : http://localhost:6080"
 echo " → Foxglove     : ws://localhost:8765"
 echo " → File Manager : http://localhost:5000"
 echo "========================================="

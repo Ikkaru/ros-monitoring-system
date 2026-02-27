@@ -186,7 +186,7 @@ def write_file():
 def build():
     import subprocess
     result = subprocess.run(
-        'source /opt/ros/humble/setup.bash && cd /root/ros_ws && colcon build --symlink-install',
+        'source /opt/ros/jazzy/setup.bash && cd /root/ros_ws && colcon build --symlink-install',
         shell=True, executable='/bin/bash', capture_output=True, text=True
     )
     return jsonify({'ok': result.returncode == 0, 'output': result.stdout + result.stderr})
@@ -195,7 +195,7 @@ def build():
 def launch():
     import subprocess
     subprocess.Popen(
-        'source /opt/ros/humble/setup.bash && source /root/ros_ws/install/setup.bash && ros2 launch my_robot display.launch.py',
+        'source /opt/ros/jazzy/setup.bash && source /root/ros_ws/install/setup.bash && ros2 launch krsti_description robot_description.launch.py',
         shell=True, executable='/bin/bash'
     )
     return jsonify({'ok': True})

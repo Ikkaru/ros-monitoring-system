@@ -32,4 +32,11 @@ def generate_launch_description():
             name='robot_state_publisher',
             output='screen',
             parameters=[robot_description]),
+        # GUI slider untuk menggerakkan joint secara manual
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+            name='joint_state_publisher_gui',
+            output='screen',
+        ),
     ])

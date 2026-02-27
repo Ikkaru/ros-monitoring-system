@@ -1,49 +1,31 @@
 #!/bin/bash
 set -e
 
-echo "=== Starting TurboVNC Server ==="
-/opt/TurboVNC/bin/vncserver :1 \
-    -geometry 1920x1080 \
-    -depth 24 \
-    -rfbport 5901 \
-    -noxstartup \
-    -securitytypes none
-sleep 2
+echo "=== Configuring GPU Backend ==="
 
-echo "=== Starting Window Manager ==="
-DISPLAY=:1 openbox &
-sleep 1
-
-echo "=== Starting noVNC Proxy ==="
-websockify --web /usr/share/novnc \
-    0.0.0.0:6080 \
-    localhost:5901 &
-
-echo "=== Configuring VirtualGL Backend ==="
-export VGL_REFRESHRATE=60
-export DISPLAY=:1
-
-# Auto-detect GPU and set appropriate VirtualGL backend
-if [ -d /proc/driver/nvidia ] || [ -c /dev/nvidia0 ] 2>/dev/null; then
-    echo ">>> NVIDIA GPU detected, using EGL backend"
-    export VGL_DISPLAY=egl
-elif ls /dev/dri/card* 2>/dev/null | grep -q card; then
-    DRI_CARD=$(ls /dev/dri/card* 2>/dev/null | head -1)
-    echo ">>> AMD/Intel GPU detected, using DRI backend: $DRI_CARD"
-    export VGL_DISPLAY=$DRI_CARD
+# Detect environment: WSLg or Linux native
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    echo ">>> Running inside WSLg (WSL2) — X11 via WSLg XServer (DISPLAY=${DISPLAY})"
 else
-    echo ">>> No GPU detected, using software rendering (Mesa llvmpipe)"
-    export LIBGL_ALWAYS_SOFTWARE=1
-    export GALLIUM_DRIVER=llvmpipe
-    export VGL_DISPLAY=egl
+    echo ">>> Running on Linux native — X11 via host display (DISPLAY=${DISPLAY})"
 fi
 
-# Persist environment variables for all processes
-echo "DISPLAY=:1" >> /etc/environment
-echo "VGL_DISPLAY=${VGL_DISPLAY}" >> /etc/environment
-echo "VGL_REFRESHRATE=60" >> /etc/environment
-[ -n "$LIBGL_ALWAYS_SOFTWARE" ] && echo "LIBGL_ALWAYS_SOFTWARE=1" >> /etc/environment
-[ -n "$GALLIUM_DRIVER" ] && echo "GALLIUM_DRIVER=${GALLIUM_DRIVER}" >> /etc/environment
+# GPU detection & rendering backend
+if [ -c /dev/dxg ] 2>/dev/null; then
+    # WSLg: GPU via D3D12 translation layer (Windows driver stub)
+    # /dev/dxg dan /usr/lib/wsl/lib di-mount via docker-compose.wslg.yml
+    echo ">>> WSLg GPU detected via /dev/dxg — using D3D12 (NVIDIA/AMD/Intel)"
+elif [ -d /proc/driver/nvidia ] || [ -c /dev/nvidia0 ] 2>/dev/null; then
+    # NVIDIA Linux native: Container Toolkit handles GPU passthrough
+    echo ">>> NVIDIA GPU detected — using NVIDIA runtime"
+elif ls /dev/dri/card* 2>/dev/null | grep -q card; then
+    # AMD / Intel Linux native: DRI device passed through via docker-compose.ogpu.yml
+    echo ">>> AMD/Intel GPU detected via /dev/dri"
+else
+    # No GPU: fallback ke software rendering Mesa llvmpipe
+    echo ">>> No GPU detected — falling back to software rendering (Mesa llvmpipe)"
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export GALLIUM_DRIVER=llvmpipe
+fi
 
-echo "=== Display Ready! ==="
-echo ">>> Access Gazebo at http://localhost:6080"
+echo "=== GPU config ready! ==="

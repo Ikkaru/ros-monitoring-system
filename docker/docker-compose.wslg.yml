@@ -1,0 +1,38 @@
+# ==================================================================
+# WSLg GPU Override (Windows Subsystem for Linux with GUI)
+#
+# Gunakan file ini jika menjalankan di dalam WSL2 dengan WSLg:
+#
+#   make up-wslg
+#   → docker compose -f docker/docker-compose.yml -f docker/docker-compose.wslg.yml up
+#
+# WSLg menggunakan D3D12 translation layer (bukan /dev/dri atau NVIDIA runtime)
+# sehingga membutuhkan:
+#   - /dev/dxg  → DirectX GPU device dari Windows driver
+#   - /usr/lib/wsl/lib → D3D12/dxcore driver stubs dari WSL2
+#
+# Tidak membutuhkan NVIDIA Container Toolkit.
+#
+# CATATAN RENDER ENGINE:
+#   Jazzy (Ubuntu 24.04) menggunakan Mesa 24 dengan D3D12 OpenGL 4.6 penuh.
+#   GL_ARB_copy_image tersedia → OGRE2 (Gazebo Harmonic default) jalan normal.
+#   Tidak perlu workaround render engine.
+# ==================================================================
+
+services:
+  ros-core:
+    environment:
+      # Library path untuk D3D12/dxcore WSL stubs
+      - LD_LIBRARY_PATH=/usr/lib/wsl/lib
+      # Paksa Mesa menggunakan D3D12 driver (bukan llvmpipe)
+      # Tanpa ini Mesa default ke software rendering meskipun /dev/dxg tersedia
+      - MESA_LOADER_DRIVER_OVERRIDE=d3d12
+      - GALLIUM_DRIVER=d3d12
+
+    devices:
+      # DirectX GPU device (WSLg)
+      - /dev/dxg:/dev/dxg
+
+    volumes:
+      # Mount WSL GPU driver stubs (read-only)
+      - /usr/lib/wsl:/usr/lib/wsl:ro

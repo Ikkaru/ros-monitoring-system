@@ -4,11 +4,9 @@ import os
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    ExecuteProcess,
     IncludeLaunchDescription,
     RegisterEventHandler,
     SetEnvironmentVariable,
-    TimerAction,
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -77,17 +75,22 @@ def generate_launch_description():
     )
 
     # ─── Controllers ──────────────────────────────────────────────────────────
-    load_joint_state_broadcaster = ExecuteProcess(
-        cmd=["ros2", "control", "load_controller", "--set-state", "active",
-             "joint_state_broadcaster"],
+    # Gunakan spawner (bukan ExecuteProcess ros2 control load_controller)
+    # spawner otomatis menunggu controller_manager siap sebelum load controller
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster"],
         output="screen",
     )
 
-    load_joint_trajectory_controller = ExecuteProcess(
-        cmd=["ros2", "control", "load_controller", "--set-state", "active",
-             "joint_trajectory_controller"],
+    joint_trajectory_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_trajectory_controller"],
         output="screen",
     )
+
 
     # ─── ROS-Gazebo Bridge ────────────────────────────────────────────────────
     bridge = Node(
@@ -105,22 +108,22 @@ def generate_launch_description():
     load_jsb_after_spawn = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_robot,
-            on_exit=[load_joint_state_broadcaster],
+            on_exit=[joint_state_broadcaster_spawner],
         )
     )
 
     # Load joint_trajectory_controller setelah joint_state_broadcaster aktif
     load_jtc_after_jsb = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=load_joint_state_broadcaster,
-            on_exit=[load_joint_trajectory_controller],
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[joint_trajectory_controller_spawner],
         )
     )
 
     return LaunchDescription([
         # Set resource path agar Gazebo bisa menemukan mesh
         SetEnvironmentVariable(
-            name='IGN_GAZEBO_RESOURCE_PATH',
+            name='GZ_SIM_RESOURCE_PATH',
             value='/root/ros_ws/install/krsti_description/share'
         ),
         DeclareLaunchArgument(

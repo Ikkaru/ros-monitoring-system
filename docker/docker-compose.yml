@@ -6,9 +6,9 @@
 #
 # Usage:
 # docker-compose up -d
-#        → http://localhost:6080 (noVNC/GUI)
-#        → http://localhost:8765 (Foxglove)
+#        → ws://localhost:8765  (Foxglove)
 #        → http://localhost:5000 (File Manager)
+#        → GUI langsung tampil di display Linux host
 # ==================================================================
 
 services:
@@ -22,16 +22,11 @@ services:
     container_name: ros_monitoring_system
 
     environment:
-    - DISPLAY=:1
-    - VGL_REFRESHRATE=60
-    - ROS_DISTRO=humble
+    - DISPLAY=${DISPLAY}
+    - ROS_DISTRO=jazzy
     - ROS_DOMAIN_ID=0
     - START_FOXGLOVE=true
     - START_FILEMANAGER=true
-
-    # GPU Passthrough:
-    #   NVIDIA → make up
-    #   AMD/Intel (Linux) → make up-ogpu
 
     volumes: 
       # Mount ROS workspace
@@ -40,18 +35,20 @@ services:
       - ../file_manager:/root/file_manager
       # Shared memory for ROS2
       - /dev/shm:/dev/shm
+      # X11 socket
+      - /tmp/.X11-unix:/tmp/.X11-unix
+
+    devices: []
+    # /dev/dri ditambahkan via docker-compose.ogpu.yml untuk AMD/Intel GPU
+    # NVIDIA GPU ditangani via docker-compose.nvidia.yml (NVIDIA Container Toolkit)
 
     ports:
-      - "6080:6080"   # noVNC
-      - "5901:5901"   # TurboVNC (for direct access if needed)
       - "8765:8765"   # Foxglove Bridge
       - "5000:5000"   # File Manager
 
     networks:
       - ros_network
     restart: unless-stopped
-
-    command: sleep infinity
 
 networks:
   ros_network:
